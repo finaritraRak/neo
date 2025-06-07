@@ -1,3 +1,4 @@
+// src/components/layout/Layout.tsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -6,16 +7,17 @@ import {
   Home,
   Settings,
   LogOut,
-  FileText,
   AlertCircle,
   BarChart2,
   Users,
   Plus,
   ChevronDown,
   Globe,
-  ClipboardList
+  ClipboardList,
+  MessageCircle
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import ChatModal from '../chat/ChatModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,6 +25,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);       // ← état du modal IA
   const location = useLocation();
   const businessProfile = useStore((state) => state.businessProfile);
 
@@ -30,123 +33,44 @@ const Layout = ({ children }: LayoutProps) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const closeSidebar = () => setSidebarOpen(false);
-
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-gray-100 relative">
+      {/* ===== SIDEBAR ===== */}
       <aside
         className={`
-        fixed top-0 left-0 z-40 h-screen w-64 transform bg-[#131635] shadow-lg transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0
-      `}
+          fixed top-0 left-0 z-40 h-screen w-64 bg-[#131635] shadow-lg
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0
+        `}
       >
         <div className="flex h-16 items-center justify-between border-b border-gray-700 px-4">
-          <Link to="/" className="flex items-center space-x-2 font-semibold text-white" onClick={closeSidebar}>
-            {/* Remplacement texte par logo image */}
-            <img
-  src="public/images/neo logo.png"
-  alt="Neo Logo"
-  className="h-10 w-auto object-contain"
-/>
-
-            {/* Si tu souhaites laisser un petit texte à côté, décommente ci-dessous */}
-            {/* <span>Neo</span> */}
+          <Link to="/" className="flex items-center space-x-2 text-white" onClick={() => setSidebarOpen(false)}>
+            <img src="/images/neo logo.png" alt="Neo Logo" className="h-10 w-auto object-contain" />
           </Link>
-          <button className="rounded-md p-1 text-gray-400 hover:bg-gray-700 md:hidden" onClick={closeSidebar}>
+          <button className="md:hidden p-1 text-gray-400 hover:bg-gray-700 rounded" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <nav className="mt-4 space-y-1 px-2">
-          <Link
-            to="/"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <Home className="mr-3 h-5 w-5" />
-            Tableau de bord
-          </Link>
-
-          <Link
-            to="/sites"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/sites') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <Globe className="mr-3 h-5 w-5" />
-            Sites & Installations
-          </Link>
-
-          <Link
-            to="/alertes"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/alertes') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <AlertCircle className="mr-3 h-5 w-5" />
-            Alertes & Diagnostics
-          </Link>
-
-          <Link
-            to="/analyse"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/analyse') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <BarChart2 className="mr-3 h-5 w-5" />
-            Analyse & Performance
-          </Link>
-
-          <Link
-            to="/rapports"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/rapports') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <ClipboardList className="mr-3 h-5 w-5" />
-            Rapports
-          </Link>
-
-          <Link
-            to="/utilisateurs"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/utilisateurs') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <Users className="mr-3 h-5 w-5" />
-            Utilisateurs & Accès
-          </Link>
-
-          <Link
-            to="/settings"
-            className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-              isActive('/settings') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-            onClick={closeSidebar}
-          >
-            <Settings className="mr-3 h-5 w-5" />
-            Paramètres
-          </Link>
+          <SidebarLink to="/" icon={Home} label="Tableau de bord" active={isActive('/')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/sites" icon={Globe} label="Sites & Installations" active={isActive('/sites')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/alertes" icon={AlertCircle} label="Alertes & Diagnostics" active={isActive('/alertes')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/analyse" icon={BarChart2} label="Analyse & Performance" active={isActive('/analyse')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/rapports" icon={ClipboardList} label="Rapports" active={isActive('/rapports')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/utilisateurs" icon={Users} label="Utilisateurs & Accès" active={isActive('/utilisateurs')} onClick={() => setSidebarOpen(false)} />
+          <SidebarLink to="/settings" icon={Settings} label="Paramètres" active={isActive('/settings')} onClick={() => setSidebarOpen(false)} />
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-700 p-4">
           <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
               {businessProfile.name.charAt(0)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{businessProfile.name}</p>
-              <p className="text-xs text-gray-400 truncate">{businessProfile.email}</p>
+            <div className="flex-1">
+              <p className="text-white text-sm truncate">{businessProfile.name}</p>
+              <p className="text-gray-400 text-xs truncate">{businessProfile.email}</p>
             </div>
             <button className="text-gray-400 hover:text-white">
               <LogOut className="h-5 w-5" />
@@ -155,33 +79,70 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* ===== MAIN ===== */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex h-16 items-center justify-between px-4">
-            <div className="flex items-center">
-              <button className="rounded-md p-1 text-gray-500 hover:bg-gray-100 md:hidden" onClick={toggleSidebar}>
-                <Menu className="h-6 w-6" />
-              </button>
-            </div>
+      <header className="bg-white shadow z-10">
+  <div className="flex h-16 items-center justify-between px-4">
+    {/* Gauche : bouton menu */}
+    <div className="flex items-center">
+      <button
+        className="md:hidden p-1 text-gray-500 hover:bg-gray-100 rounded"
+        onClick={() => setSidebarOpen(o => !o)}
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+    </div>
 
-            <div className="flex items-center space-x-4">
-              <Link to="/rapports/generer" className="btn btn-primary inline-flex items-center">
-                <Plus className="mr-1 h-4 w-4" />
-                Nouveau rapport
-              </Link>
-              <button className="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900">
-                <span>Aide</span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </header>
+    {/* Droite : actions */}
+    <div className="ml-auto flex items-center space-x-4">
+      <Link to="/rapports/generer" className="btn btn-primary inline-flex items-center">
+        <Plus className="h-4 w-4 mr-1" /> Nouveau rapport
+      </Link>
+      <button className="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
+        <span>Aide</span>
+        <ChevronDown className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+</header>
+
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
+
+      {/* ===== BOUTON IA FLOTTANT ===== */}
+      <button
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-white shadow-lg hover:bg-blue-700 transition"
+      >
+        <MessageCircle className="h-5 w-5" />
+        Assistant IA
+      </button>
+
+      {/* ===== MODAL CHAT ===== */}
+      <ChatModal open={chatOpen} setOpen={setChatOpen} />
     </div>
   );
 };
+
+interface SidebarLinkProps {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
+const SidebarLink = ({ to, icon: Icon, label, active, onClick }: SidebarLinkProps) => (
+  <Link
+    to={to}
+    onClick={onClick}
+    className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+      active ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+    }`}
+  >
+    <Icon className="h-5 w-5 mr-3" />
+    {label}
+  </Link>
+);
 
 export default Layout;
